@@ -5,7 +5,7 @@ control pack commands packets are sent between the coordinator and control packs
 
 it can be assumed that the coordinator's node number is 0.
 
-all control packs will issue heartbeat commands every 250ms. the coordinator will use these to ensure that command packs are online and active. control packs will use the coordinator heartbeat to verify that the coordinator is still online and active. in the event that a control pack doesn't receive a coordinator heartbeat for 1000ms, it will assume that the coordinator is offline or suffering some malfunction. in that event, the control pack will set all digital pins off.
+all control packs will issue heartbeat commands every 500ms. the coordinator will use these to ensure that command packs are online and active. control packs will use the coordinator heartbeat to verify that the coordinator is still online and active. in the event that a control pack doesn't receive a coordinator heartbeat for 2000ms, it will assume that the coordinator is offline or suffering some malfunction. in that event, the control pack will set all digital pins off.
 
 
 packet format
@@ -15,7 +15,7 @@ hhllssttccppff
  | | | | | | |
  | | | | | | +-- footer, always 0xfd
  | | | | | |
- | | | | | +-- command parameter(s)
+ | | | | | +-- optional command parameter(s), there can be 0 or more parameter bytes
  | | | | |
  | | | | +-- command
  | | | |
@@ -49,8 +49,8 @@ commands
 0xfe packet header
 
 
-command examples
-++++++++++++++++
+command packet examples
++++++++++++++++++++++++
 
 version
 -------
@@ -103,3 +103,50 @@ port count info
     0xID is the control pack's id number
 
     0xPT is the count of the control pack's active digital i/o ports
+
+
+all off/on
+----------
+
+all off
+
+    0xfe 0x03 0x00 0xff 0x20 0xfd
+
+
+all on
+
+    0xfe 0x03 0x00 0xff 0x21 0xfd
+
+
+port on/off
+-----------
+
+port 1 on
+
+    0xfe 0x04 0x00 0xff 0x22 0x01 0xfd
+
+
+port 3 off
+
+    0xfe 0x04 0x00 0xff 0x23 0x03 0xfd
+
+
+sequent up/down
+---------------
+
+sequence up
+
+    0xfe 0x03 0x00 0xff 0x24 0xfd
+
+
+sequence down
+
+    0xfe 0x03 0x00 0xff 0x25 0xfd
+
+
+port on for time
+----------------
+
+on control pack 1, turn on port 2 for 1,000 milliseconds
+
+    0xfe 0x03 0x00 0x01 0x26 0x02 0x03 0xe8 0xfd
