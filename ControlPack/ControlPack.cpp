@@ -22,25 +22,22 @@
  */
 
 
-void setup()
+
+#include "ControlPack.h"
+
+
+ControlPack::ControlPack()
 {
-  int x = 0;
-
-  Serial.begin(9600);
-  Serial.println("hello");
-
-  Serial.println(x);
-  x = 1 << 8;
-  Serial.println(x);
-  x = (0x03 << 8) + 0xe8;
-  Serial.println(x);
-  if (x == 1000) {
-    Serial.println("yea");
-  } else {
-    Serial.println("oy");
-  }
 }
 
-void loop()
+
+void ControlPack::loop()
 {
+    (*_cb_test)();
+}
+
+
+void ControlPack::scb_test(cbfp fp)
+{
+    _cb_test = fp;
 }
