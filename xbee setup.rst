@@ -32,7 +32,8 @@ my 1
 xbee control pack 2
 -------------------
 
-0013a200 409c0365
+sh 0013a200
+sl 409c0365
 dh 00000000
 dl 0000ffff
 ce 0
