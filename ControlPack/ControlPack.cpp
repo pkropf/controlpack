@@ -41,11 +41,12 @@ ControlPack::ControlPack(uint8_t me, uint8_t model)
     _cb_port_info     = 0;
     _cb_all_off       = 0;
     _cb_all_on        = 0;
+    _cb_all_timed     = 0;
     _cb_port_on       = 0;
     _cb_port_off      = 0;
+    _cb_port_timed    = 0;
     _cb_sequence_up   = 0;
     _cb_sequence_down = 0;
-    _cb_timed_on      = 0;
 }
 
 
@@ -111,6 +112,12 @@ void ControlPack::send_all_on(uint8_t dst)
 }
 
 
+void ControlPack::send_all_timed(uint8_t dst, uint16_t millis)
+{
+    sendb2(CPC_ALL_TIMED, dst, millis);
+}
+
+
 void ControlPack::send_port_off(uint8_t dst, uint8_t port)
 {
     sendb1(CPC_PORT_OFF, dst, port);
@@ -123,6 +130,12 @@ void ControlPack::send_port_on(uint8_t dst, uint8_t port)
 }
 
 
+void ControlPack::send_port_timed(uint8_t dst, uint8_t port, uint16_t millis)
+{
+    sendb1b2(CPC_PORT_TIMED, dst, port, millis);
+}
+
+
 void ControlPack::send_sequence_up(uint8_t dst, uint16_t millis)
 {
     sendb2(CPC_SEQUENCE_UP, dst, millis);
@@ -132,12 +145,6 @@ void ControlPack::send_sequence_up(uint8_t dst, uint16_t millis)
 void ControlPack::send_sequence_down(uint8_t dst, uint16_t millis)
 {
     sendb2(CPC_SEQUENCE_DOWN, dst, millis);
-}
-
-
-void ControlPack::send_timed_on(uint8_t dst, uint8_t port, uint16_t millis)
-{
-    sendb1b2(CPC_TIMED_ON, dst, port, millis);
 }
 
 
@@ -234,15 +241,31 @@ void ControlPack::parse()
             }
             break;
 
-        case CPC_PORT_ON:
-            if (_cb_port_on != 0) {
-                _cb_port_on(src, dst, _buffer[3]);
+        case CPC_ALL_TIMED:
+            if (_cb_all_timed != 0) {
+                uint16_t millis = (_buffer[3] << 8) + _buffer[4];
+
+                _cb_all_timed(src, dst, millis);
             }
             break;
 
         case CPC_PORT_OFF:
             if (_cb_port_off != 0) {
                 _cb_port_off(src, dst, _buffer[3]);
+            }
+            break;
+
+        case CPC_PORT_ON:
+            if (_cb_port_on != 0) {
+                _cb_port_on(src, dst, _buffer[3]);
+            }
+            break;
+
+        case CPC_PORT_TIMED:
+            if (_cb_port_timed != 0) {
+                uint16_t millis = (_buffer[4] << 8) + _buffer[5];
+
+                _cb_port_timed(src, dst, _buffer[3], millis);
             }
             break;
 
@@ -259,14 +282,6 @@ void ControlPack::parse()
                 uint16_t millis = (_buffer[3] << 8) + _buffer[4];
 
                 _cb_sequence_down(src, dst, millis);
-            }
-            break;
-
-        case CPC_TIMED_ON:
-            if (_cb_timed_on != 0) {
-                uint16_t millis = (_buffer[4] << 8) + _buffer[5];
-
-                _cb_timed_on(src, dst, _buffer[3], millis);
             }
             break;
 
@@ -379,15 +394,27 @@ void ControlPack::scb_all_on(cbfp fp)
 }
 
 
-void ControlPack::scb_port_on(cbfpb1 fp)
+void ControlPack::scb_all_timed(cbfpb2 fp)
 {
-    _cb_port_on = fp;
+    _cb_all_timed = fp;
 }
 
 
 void ControlPack::scb_port_off(cbfpb1 fp)
 {
     _cb_port_off = fp;
+}
+
+
+void ControlPack::scb_port_on(cbfpb1 fp)
+{
+    _cb_port_on = fp;
+}
+
+
+void ControlPack::scb_port_timed(cbfpb1b2 fp)
+{
+    _cb_port_timed = fp;
 }
 
 
@@ -400,10 +427,4 @@ void ControlPack::scb_sequence_up(cbfpb2 fp)
 void ControlPack::scb_sequence_down(cbfpb2 fp)
 {
     _cb_sequence_down = fp;
-}
-
-
-void ControlPack::scb_timed_on(cbfpb1b2 fp)
-{
-    _cb_timed_on = fp;
 }

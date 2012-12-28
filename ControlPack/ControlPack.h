@@ -44,11 +44,12 @@ typedef void (*cbfpb1b2)(uint8_t, uint8_t, uint8_t, uint16_t);
 #define CPC_PORT_INFO      0x15
 #define CPC_ALL_OFF        0x20
 #define CPC_ALL_ON         0x21
-#define CPC_PORT_ON        0x22
+#define CPC_ALL_TIMED      0x22
 #define CPC_PORT_OFF       0x23
-#define CPC_SEQUENCE_UP    0x24
-#define CPC_SEQUENCE_DOWN  0x25
-#define CPC_TIMED_ON       0x26
+#define CPC_PORT_ON        0x24
+#define CPC_PORT_TIMED     0x25
+#define CPC_SEQUENCE_UP    0x26
+#define CPC_SEQUENCE_DOWN  0x27
 #define CPC_FOOTER         0xfd
 #define CPC_HEADER         0xfe
 
@@ -83,11 +84,12 @@ class ControlPack
         void send_ports(uint8_t dst);
         void send_all_off(uint8_t dst);
         void send_all_on(uint8_t dst);
+        void send_all_timed(uint8_t dst, uint16_t millis);
         void send_port_off(uint8_t dst, uint8_t port);
         void send_port_on(uint8_t dst, uint8_t port);
+        void send_port_timed(uint8_t dst, uint8_t port, uint16_t millis);
         void send_sequence_up(uint8_t dst, uint16_t millis);
         void send_sequence_down(uint8_t dst, uint16_t millis);
-        void send_timed_on(uint8_t dst, uint8_t port, uint16_t millis);
 
         void scb_heartbeat(cbfp fp);
         void scb_version_info(cbfpb2 fp);
@@ -95,11 +97,12 @@ class ControlPack
         void scb_port_info(cbfpb1 fp);
         void scb_all_off(cbfp fp);
         void scb_all_on(cbfp fp);
-        void scb_port_on(cbfpb1 fp);
+        void scb_all_timed(cbfpb2 fp);
         void scb_port_off(cbfpb1 fp);
+        void scb_port_on(cbfpb1 fp);
+        void scb_port_timed(cbfpb1b2 fp);
         void scb_sequence_up(cbfpb2 fp);
         void scb_sequence_down(cbfpb2 fp);
-        void scb_timed_on(cbfpb1b2 fp);
 
 
     private:
@@ -117,11 +120,12 @@ class ControlPack
         cbfpb1   _cb_port_info;
         cbfp     _cb_all_off;
         cbfp     _cb_all_on;
-        cbfpb1   _cb_port_on;
+        cbfpb2   _cb_all_timed;
         cbfpb1   _cb_port_off;
+        cbfpb1   _cb_port_on;
+        cbfpb1b2 _cb_port_timed;
         cbfpb2   _cb_sequence_up;
         cbfpb2   _cb_sequence_down;
-        cbfpb1b2 _cb_timed_on;
 
         uint8_t _me;
         uint8_t _model;

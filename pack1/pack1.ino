@@ -25,19 +25,87 @@
 #include <ControlPack.h>
 
 
+const int relay_count = 4;                         // number of relays connected
+int relays[relay_count] = {3, 4, 5, 6};             // relay pins
+int state[relay_count] = {0, 0, 0, 0};             // expected state of the relays, 0 off, 1 on
+unsigned long timers[relay_count] = {0, 0, 0, 0};  // duration timers for the relays
+
+
 ControlPack cp(1, CP_MODEL_4PACK);
+
+
+void all_off(uint8_t src, uint8_t dst)
+{
+  for (int x = 0; x < relay_count; x++) {
+    state[x] = 0;
+  }
+}
+
+
+void all_on(uint8_t src, uint8_t dst)
+{
+  for (int x = 0; x < relay_count; x++) {
+    state[x] = 1;
+  }
+}
+
+
+void all_timed(uint8_t src, uint8_t dst, uint16_t m)
+{
+  unsigned long now = millis();
+
+  for (int x = 0; x < relay_count; x++) {
+    state[x] = 1;
+    timers[x] = now + m;
+  }
+}
 
 
 void setup()
 {
   Serial.begin(9600);
+
+  for (int x = 0; x < relay_count; x++) {
+    pinMode(relays[x], OUTPUT);
+  }
+
+  cp.scb_all_off(all_off);
+  cp.scb_all_on(all_on);
+  cp.scb_all_timed(all_timed);
+
   cp.send_version(CP_EVERYONE);
   cp.send_model(CP_EVERYONE);
+}
+
+
+void check_timers()
+{
+  unsigned long now = millis();
+
+  for (int x = 0; x < relay_count; x++) {
+    if (now > timers[x]) {
+      state[x] == 0;
+    }
+  }
+}
+
+
+void update_relays()
+{
+  for (int x = 0; x < relay_count; x++) {
+    if (state[x] == 1) {
+      digitalWrite(relays[x], HIGH);
+    } else {
+      digitalWrite(relays[x], LOW);
+    }
+  }
 }
 
 
 void loop()
 {
   cp.loop();
+  check_timers();
+  update_relays();
 }
 
