@@ -35,10 +35,17 @@ const int relay_count = 4;                         // number of relays connected
 int relays[relay_count] = {3, 4, 5, 6};            // relay pins
 int state[relay_count] = {0, 0, 0, 0};             // expected state of the relays, 0 off, 1 on
 unsigned long timers[relay_count] = {0, 0, 0, 0};  // timers for the relays
+
 int sequence_active = INACTIVE;                    // a sequence is active
 int sequence_current = 0;                          // current sequence relay
 unsigned long sequence_millis = 0;                 // millis between sequence relays
 unsigned long sequence_timer = 0;                  // time till current sequence step is complete
+
+unsigned long last_heartbeat = 0;                  // last time we heard a heartbeat from the coordinator
+const int heartbeat_led_pin =  13;                 // led to flash when we're receiving a heartbeat
+int heartbeat_led_state = LOW;                     // state of the heartbeat led
+long heartbeat_led_previous = 0;                   // last time the heartbeat led was updated
+long heartbeat_led_interval = 500;                 // interval at which to blink the heartbeat led
 
 
 ControlPack cp(QUADPACK_ID, CP_MODEL_4PACK);
@@ -53,6 +60,14 @@ void kill_sequence()
       state[x] = 0;
       timers[x] = 0;
     }
+  }
+}
+
+
+void heartbeat(uint8_t src, uint8_t dst)
+{
+  if (src == 0) {
+    last_heartbeat = millis();
   }
 }
 
@@ -145,6 +160,8 @@ void setup()
 {
   Serial.begin(9600);
 
+  pinMode(heartbeat_led_pin, OUTPUT);      
+
   for (int x = 0; x < relay_count; x++) {
     pinMode(relays[x], OUTPUT);
   }
@@ -160,6 +177,34 @@ void setup()
 
   cp.send_version(CP_EVERYONE);
   cp.send_model(CP_EVERYONE);
+}
+
+
+void check_heartbeat()
+{
+  unsigned long now = millis();
+
+  if (now - last_heartbeat > 2000) {
+    for (int x = 0; x < relay_count; x++) {
+      state[x] = 0;
+      timers[x] = 0;
+      sequence_active = INACTIVE;
+      sequence_timer = 0;
+    }
+  } else {
+    unsigned long now = millis();
+
+    if(now - heartbeat_led_previous > heartbeat_led_interval) {
+      heartbeat_led_previous = now;
+
+      if (heartbeat_led_state == LOW)
+        heartbeat_led_state = HIGH;
+      else
+        heartbeat_led_state = LOW;
+
+      digitalWrite(heartbeat_led_pin, heartbeat_led_state);
+    }
+  }
 }
 
 
@@ -219,6 +264,6 @@ void loop()
   cp.loop();
   sequence_step();
   check_timers();
+  check_heartbeat();
   update_relays();
 }
-
