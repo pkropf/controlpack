@@ -39,6 +39,7 @@ int sequence_active = INACTIVE;                    // a sequence is active
 int sequence_current = 0;                          // current sequence relay
 unsigned long sequence_millis = 0;                 // millis between sequence relays
 unsigned long sequence_timer = 0;                  // time till current sequence step is complete
+unsigned long last_heartbeat = 0;
 
 
 ControlPack cp(QUADPACK_ID, CP_MODEL_4PACK);
@@ -53,6 +54,14 @@ void kill_sequence()
       state[x] = 0;
       timers[x] = 0;
     }
+  }
+}
+
+
+void heartbeat(uint8_t src, uint8_t dst)
+{
+  if (src == 0) {
+    last_heartbeat = millis();
   }
 }
 
@@ -163,6 +172,21 @@ void setup()
 }
 
 
+void check_heartbeat()
+{
+  unsigned long now = millis();
+
+  if (now - last_heartbeat > 2000) {
+    for (int x = 0; x < relay_count; x++) {
+      state[x] = 0;
+      timers[x] = 0;
+      sequence_active = INACTIVE;
+      sequence_timer = 0;
+    }
+  }
+}
+
+
 void sequence_step()
 {
   unsigned long now = millis();
@@ -219,6 +243,6 @@ void loop()
   cp.loop();
   sequence_step();
   check_timers();
+  check_heartbeat();
   update_relays();
 }
-
