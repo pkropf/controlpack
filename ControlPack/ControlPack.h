@@ -28,7 +28,10 @@
 #include "Arduino.h"
 
 
-typedef void (*cbfp)(uint8_t, uint8_t, uint8_t, uint8_t);
+typedef void (*cbfp)(uint8_t, uint8_t);
+typedef void (*cbfpb1)(uint8_t, uint8_t, uint8_t);
+typedef void (*cbfpb2)(uint8_t, uint8_t, uint16_t);
+typedef void (*cbfpb1b2)(uint8_t, uint8_t, uint8_t, uint16_t);
 
 
 // control pack commands
@@ -50,6 +53,18 @@ typedef void (*cbfp)(uint8_t, uint8_t, uint8_t, uint8_t);
 #define CPC_HEADER         0xfe
 
 
+// version details
+// upper byte is the major release number
+// lower byte is the minor release number
+#define CP_VERSION   0x0001
+
+
+// model details
+#define CP_MODEL_COORDINATOR 0
+#define CP_MODEL_4PACK       1
+#define CP_MODEL_8PACK       2
+
+
 // control pack constants
 #define CP_EVERYONE        0x20
 #define CP_HEARTBEAT_RATE  500
@@ -59,9 +74,12 @@ typedef void (*cbfp)(uint8_t, uint8_t, uint8_t, uint8_t);
 class ControlPack
 {
     public:
-        ControlPack(uint8_t me);
+        ControlPack(uint8_t me, uint8_t model);
 
         void loop();
+        void send_version(uint8_t dst);
+        void send_model(uint8_t dst);
+        void send_ports(uint8_t dst);
         void send_all_off(uint8_t dst);
         void send_all_on(uint8_t dst);
         void send_port_off(uint8_t dst, uint8_t port);
@@ -70,21 +88,17 @@ class ControlPack
         void send_sequence_down(uint8_t dst, uint16_t millis);
         void send_timed_on(uint8_t dst, uint8_t port, uint16_t millis);
 
-        void scb_test(cbfp fp);
         void scb_heartbeat(cbfp fp);
-        void scb_version_query(cbfp fp);
-        void scb_version_info(cbfp fp);
-        void scb_model_query(cbfp fp);
-        void scb_model_info(cbfp fp);
-        void scb_port_query(cbfp fp);
-        void scb_port_info(cbfp fp);
+        void scb_version_info(cbfpb1 fp);
+        void scb_model_info(cbfpb1 fp);
+        void scb_port_info(cbfpb1 fp);
         void scb_all_off(cbfp fp);
         void scb_all_on(cbfp fp);
-        void scb_port_on(cbfp fp);
-        void scb_port_off(cbfp fp);
-        void scb_sequence_up(cbfp fp);
-        void scb_sequence_down(cbfp fp);
-        void scb_timed_on(cbfp fp);
+        void scb_port_on(cbfpb1 fp);
+        void scb_port_off(cbfpb1 fp);
+        void scb_sequence_up(cbfpb2 fp);
+        void scb_sequence_down(cbfpb2 fp);
+        void scb_timed_on(cbfpb1b2 fp);
 
 
     private:
@@ -96,23 +110,20 @@ class ControlPack
         void sendb2(uint8_t cmd, uint8_t dst, uint16_t p1);
         void sendb1b2(uint8_t cmd, uint8_t dst, uint8_t p1, uint16_t p2);
 
-        cbfp _cb_test;
-        cbfp _cb_heartbeat;
-        cbfp _cb_version_query;
-        cbfp _cb_version_info;
-        cbfp _cb_model_query;
-        cbfp _cb_model_info;
-        cbfp _cb_port_query;
-        cbfp _cb_port_info;
-        cbfp _cb_all_off;
-        cbfp _cb_all_on;
-        cbfp _cb_port_on;
-        cbfp _cb_port_off;
-        cbfp _cb_sequence_up;
-        cbfp _cb_sequence_down;
-        cbfp _cb_timed_on;
+        cbfp     _cb_heartbeat;
+        cbfpb1   _cb_version_info;
+        cbfpb1   _cb_model_info;
+        cbfpb1   _cb_port_info;
+        cbfp     _cb_all_off;
+        cbfp     _cb_all_on;
+        cbfpb1   _cb_port_on;
+        cbfpb1   _cb_port_off;
+        cbfpb2   _cb_sequence_up;
+        cbfpb2   _cb_sequence_down;
+        cbfpb1b2 _cb_timed_on;
 
         uint8_t _me;
+        uint8_t _model;
 
         uint8_t _buffer[CP_MAX_PACKET];
 

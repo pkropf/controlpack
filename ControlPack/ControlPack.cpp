@@ -25,22 +25,19 @@
 #include "ControlPack.h"
 
 
-ControlPack::ControlPack(uint8_t me)
+ControlPack::ControlPack(uint8_t me, uint8_t model)
 {
     _me = me;
+    _model = model;
 
 	_bindex          = 0;
     _received_header = 0;
     _expected_length = 0;
     _last_heartbeat  = 0;
 
-    _cb_test          = 0;
     _cb_heartbeat     = 0;
-    _cb_version_query = 0;
     _cb_version_info  = 0;
-    _cb_model_query   = 0;
     _cb_model_info    = 0;
-    _cb_port_query    = 0;
     _cb_port_info     = 0;
     _cb_all_off       = 0;
     _cb_all_on        = 0;
@@ -69,6 +66,36 @@ void ControlPack::send_heartbeat()
 
     _last_heartbeat = m;
     send(CPC_HEARTBEAT, CP_EVERYONE);
+}
+
+
+void ControlPack::send_version(uint8_t dst)
+{
+    sendb2(CPC_VERSION_INFO, dst, CP_VERSION);
+}
+
+
+void ControlPack::send_model(uint8_t dst)
+{
+    sendb1(CPC_MODEL_INFO, dst, _model);
+}
+
+
+void ControlPack::send_ports(uint8_t dst)
+{
+    uint8_t ports = 0;
+
+    switch (_model) {
+    case CP_MODEL_4PACK:
+        ports = 4;
+        break;
+
+    case CP_MODEL_8PACK:
+        ports = 8;
+        break;
+    }
+
+    sendb1(CPC_PORT_INFO, dst, ports);
 }
 
 
@@ -159,79 +186,73 @@ void ControlPack::parse()
         switch (cmd) {
         case CPC_HEARTBEAT:
             if (_cb_heartbeat != 0) {
-                _cb_heartbeat(src, dst, 0, 0);
+                _cb_heartbeat(src, dst);
             }
             break;
 
         case CPC_VERSION_QUERY:
-            if (_cb_version_query != 0) {
-                _cb_version_query(src, dst, 0, 0);
-            }
+            send_version(dst);
             break;
 
         case CPC_VERSION_INFO:
             if (_cb_version_info != 0) {
-                _cb_version_info(src, dst, 0, 0);
+                _cb_version_info(src, dst, 0);
             }
             break;
 
         case CPC_MODEL_QUERY:
-            if (_cb_model_query != 0) {
-                _cb_model_query(src, dst, 0, 0);
-            }
+            send_model(dst);
             break;
 
         case CPC_MODEL_INFO:
             if (_cb_model_info != 0) {
-                _cb_model_info(src, dst, 0, 0);
+                _cb_model_info(src, dst, 0);
             }
             break;
 
         case CPC_PORT_QUERY:
-            if (_cb_port_query != 0) {
-                _cb_port_query(src, dst, 0, 0);
-            }
+            send_ports(dst);
             break;
 
         case CPC_PORT_INFO:
             if (_cb_port_info != 0) {
-                _cb_port_info(src, dst, 0, 0);
+                _cb_port_info(src, dst, 0);
             }
             break;
 
         case CPC_ALL_OFF:
             if (_cb_all_off != 0) {
-                _cb_all_off(src, dst, 0, 0);
+                _cb_all_off(src, dst);
             }
             break;
 
         case CPC_ALL_ON:
             if (_cb_all_on != 0) {
-                _cb_all_on(src, dst, 0, 0);
+                _cb_all_on(src, dst);
             }
             break;
 
         case CPC_PORT_ON:
             if (_cb_port_on != 0) {
-                _cb_port_on(src, dst, 0, 0);
+                _cb_port_on(src, dst, 0);
             }
             break;
 
         case CPC_PORT_OFF:
             if (_cb_port_off != 0) {
-                _cb_port_off(src, dst, 0, 0);
+                _cb_port_off(src, dst, 0);
             }
             break;
 
         case CPC_SEQUENCE_UP:
             if (_cb_sequence_up != 0) {
-                _cb_sequence_up(src, dst, 0, 0);
+                _cb_sequence_up(src, dst, 0);
             }
             break;
 
         case CPC_SEQUENCE_DOWN:
             if (_cb_sequence_down != 0) {
-                _cb_sequence_down(src, dst, 0, 0);
+                _cb_sequence_down(src, dst, 0);
             }
             break;
 
@@ -314,49 +335,25 @@ void ControlPack::sendb1b2(uint8_t cmd, uint8_t dst, uint8_t p1, uint16_t p2)
 }
 
 
-void ControlPack::scb_test(cbfp fp)
-{
-    _cb_test = fp;
-}
-
-
 void ControlPack::scb_heartbeat(cbfp fp)
 {
     _cb_heartbeat = fp;
 }
 
 
-void ControlPack::scb_version_query(cbfp fp)
-{
-    _cb_version_query = fp;
-}
-
-
-void ControlPack::scb_version_info(cbfp fp)
+void ControlPack::scb_version_info(cbfpb1 fp)
 {
     _cb_version_info = fp;
 }
 
 
-void ControlPack::scb_model_query(cbfp fp)
-{
-    _cb_model_query = fp;
-}
-
-
-void ControlPack::scb_model_info(cbfp fp)
+void ControlPack::scb_model_info(cbfpb1 fp)
 {
     _cb_model_info = fp;
 }
 
 
-void ControlPack::scb_port_query(cbfp fp)
-{
-    _cb_port_query = fp;
-}
-
-
-void ControlPack::scb_port_info(cbfp fp)
+void ControlPack::scb_port_info(cbfpb1 fp)
 {
     _cb_port_info = fp;
 }
@@ -374,31 +371,31 @@ void ControlPack::scb_all_on(cbfp fp)
 }
 
 
-void ControlPack::scb_port_on(cbfp fp)
+void ControlPack::scb_port_on(cbfpb1 fp)
 {
     _cb_port_on = fp;
 }
 
 
-void ControlPack::scb_port_off(cbfp fp)
+void ControlPack::scb_port_off(cbfpb1 fp)
 {
     _cb_port_off = fp;
 }
 
 
-void ControlPack::scb_sequence_up(cbfp fp)
+void ControlPack::scb_sequence_up(cbfpb2 fp)
 {
     _cb_sequence_up = fp;
 }
 
 
-void ControlPack::scb_sequence_down(cbfp fp)
+void ControlPack::scb_sequence_down(cbfpb2 fp)
 {
     _cb_sequence_down = fp;
 }
 
 
-void ControlPack::scb_timed_on(cbfp fp)
+void ControlPack::scb_timed_on(cbfpb1b2 fp)
 {
     _cb_timed_on = fp;
 }

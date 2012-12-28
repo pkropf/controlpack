@@ -85,7 +85,7 @@ model info
 
     0xID is the control pack's id number
 
-    0xMD is the control pack's model number, 1 = quad pack, 2 = octa pack
+    0xMD is the control pack's model number, 0 = coordinator, 1 = quad pack, 2 = octa pack
 
 
 port
