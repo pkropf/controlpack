@@ -29,10 +29,14 @@ import time
 
 port = '/dev/tty.usbserial-09GP5269'
 baud = 9600
-
+last_heartbeat = time.time()
 
 def heartbeat():
-	print 'heartbeat'
+	global last_heartbeat
+	
+	now = time.time()
+	print 'heartbeat', now - last_heartbeat
+	last_heartbeat = now
 
 
 cp = ControlPack.ControlPack(port, baud)
