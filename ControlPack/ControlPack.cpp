@@ -196,7 +196,9 @@ void ControlPack::parse()
 
         case CPC_VERSION_INFO:
             if (_cb_version_info != 0) {
-                _cb_version_info(src, dst, 0);
+                uint16_t version = (_buffer[3] << 8) + _buffer[4];
+
+                _cb_version_info(src, dst, version);
             }
             break;
 
@@ -206,7 +208,7 @@ void ControlPack::parse()
 
         case CPC_MODEL_INFO:
             if (_cb_model_info != 0) {
-                _cb_model_info(src, dst, 0);
+                _cb_model_info(src, dst, _buffer[3]);
             }
             break;
 
@@ -216,7 +218,7 @@ void ControlPack::parse()
 
         case CPC_PORT_INFO:
             if (_cb_port_info != 0) {
-                _cb_port_info(src, dst, 0);
+                _cb_port_info(src, dst, _buffer[3]);
             }
             break;
 
@@ -234,31 +236,37 @@ void ControlPack::parse()
 
         case CPC_PORT_ON:
             if (_cb_port_on != 0) {
-                _cb_port_on(src, dst, 0);
+                _cb_port_on(src, dst, _buffer[3]);
             }
             break;
 
         case CPC_PORT_OFF:
             if (_cb_port_off != 0) {
-                _cb_port_off(src, dst, 0);
+                _cb_port_off(src, dst, _buffer[3]);
             }
             break;
 
         case CPC_SEQUENCE_UP:
             if (_cb_sequence_up != 0) {
-                _cb_sequence_up(src, dst, 0);
+                uint16_t millis = (_buffer[3] << 8) + _buffer[4];
+
+                _cb_sequence_up(src, dst, millis);
             }
             break;
 
         case CPC_SEQUENCE_DOWN:
             if (_cb_sequence_down != 0) {
-                _cb_sequence_down(src, dst, 0);
+                uint16_t millis = (_buffer[3] << 8) + _buffer[4];
+
+                _cb_sequence_down(src, dst, millis);
             }
             break;
 
         case CPC_TIMED_ON:
             if (_cb_timed_on != 0) {
-                _cb_timed_on(src, dst, 0, 0);
+                uint16_t millis = (_buffer[4] << 8) + _buffer[5];
+
+                _cb_timed_on(src, dst, _buffer[3], millis);
             }
             break;
 
@@ -341,7 +349,7 @@ void ControlPack::scb_heartbeat(cbfp fp)
 }
 
 
-void ControlPack::scb_version_info(cbfpb1 fp)
+void ControlPack::scb_version_info(cbfpb2 fp)
 {
     _cb_version_info = fp;
 }

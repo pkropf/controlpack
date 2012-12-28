@@ -77,6 +77,7 @@ class ControlPack
         ControlPack(uint8_t me, uint8_t model);
 
         void loop();
+
         void send_version(uint8_t dst);
         void send_model(uint8_t dst);
         void send_ports(uint8_t dst);
@@ -89,7 +90,7 @@ class ControlPack
         void send_timed_on(uint8_t dst, uint8_t port, uint16_t millis);
 
         void scb_heartbeat(cbfp fp);
-        void scb_version_info(cbfpb1 fp);
+        void scb_version_info(cbfpb2 fp);
         void scb_model_info(cbfpb1 fp);
         void scb_port_info(cbfpb1 fp);
         void scb_all_off(cbfp fp);
@@ -111,7 +112,7 @@ class ControlPack
         void sendb1b2(uint8_t cmd, uint8_t dst, uint8_t p1, uint16_t p2);
 
         cbfp     _cb_heartbeat;
-        cbfpb1   _cb_version_info;
+        cbfpb2   _cb_version_info;
         cbfpb1   _cb_model_info;
         cbfpb1   _cb_port_info;
         cbfp     _cb_all_off;
