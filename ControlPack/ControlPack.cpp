@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 
 /* Copyright (c) 2012 Peter Kropf. All rights reserved.
-
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -54,23 +54,8 @@ ControlPack::ControlPack(uint8_t me)
 
 void ControlPack::loop()
 {
-    build_packet();
+    read_packet();
     send_heartbeat();
-}
-
-
-void ControlPack::send(uint8_t cmd, uint8_t dst)
-{
-    uint8_t buffer[CP_MAX_PACKET];
-    
-    buffer[0] = CPC_HEADER;
-    buffer[1] = 0x03;
-    buffer[2] = _me;
-    buffer[3] = dst;
-    buffer[4] = cmd;
-    buffer[5] = CPC_FOOTER;
-
-    Serial.write(buffer, 0x06);
 }
 
 
@@ -87,7 +72,49 @@ void ControlPack::send_heartbeat()
 }
 
 
-void ControlPack::build_packet()
+void ControlPack::send_all_off(uint8_t dst)
+{
+    send(CPC_ALL_OFF, dst);
+}
+
+
+void ControlPack::send_all_on(uint8_t dst)
+{
+    send(CPC_ALL_ON, dst);
+}
+
+
+void ControlPack::send_port_off(uint8_t dst, uint8_t port)
+{
+    sendb1(CPC_PORT_OFF, dst, port);
+}
+
+
+void ControlPack::send_port_on(uint8_t dst, uint8_t port)
+{
+    sendb1(CPC_PORT_ON, dst, port);
+}
+
+
+void ControlPack::send_sequence_up(uint8_t dst, uint16_t millis)
+{
+    sendb2(CPC_SEQUENCE_UP, dst, millis);
+}
+
+
+void ControlPack::send_sequence_down(uint8_t dst, uint16_t millis)
+{
+    sendb2(CPC_SEQUENCE_DOWN, dst, millis);
+}
+
+
+void ControlPack::send_timed_on(uint8_t dst, uint8_t port, uint16_t millis)
+{
+    sendb1b2(CPC_TIMED_ON, dst, port, millis);
+}
+
+
+void ControlPack::read_packet()
 {
     uint8_t b = 0;
 
@@ -218,6 +245,72 @@ void ControlPack::parse()
             break;
         }
     }
+}
+
+
+void ControlPack::send(uint8_t cmd, uint8_t dst)
+{
+    uint8_t buffer[CP_MAX_PACKET];
+    
+    buffer[0] = CPC_HEADER;
+    buffer[1] = 3;
+    buffer[2] = _me;
+    buffer[3] = dst;
+    buffer[4] = cmd;
+    buffer[5] = CPC_FOOTER;
+
+    Serial.write(buffer, 6);
+}
+
+
+void ControlPack::sendb1(uint8_t cmd, uint8_t dst, uint8_t p1)
+{
+    uint8_t buffer[CP_MAX_PACKET];
+    
+    buffer[0] = CPC_HEADER;
+    buffer[1] = 4;
+    buffer[2] = _me;
+    buffer[3] = dst;
+    buffer[4] = cmd;
+    buffer[5] = p1;
+    buffer[6] = CPC_FOOTER;
+
+    Serial.write(buffer, 7);
+}
+
+
+void ControlPack::sendb2(uint8_t cmd, uint8_t dst, uint16_t p1)
+{
+    uint8_t buffer[CP_MAX_PACKET];
+    
+    buffer[0] = CPC_HEADER;
+    buffer[1] = 5;
+    buffer[2] = _me;
+    buffer[3] = dst;
+    buffer[4] = cmd;
+    buffer[5] = uint8_t(p1 >> 8);
+    buffer[6] = uint8_t((p1 << 8) >> 8);
+    buffer[7] = CPC_FOOTER;
+
+    Serial.write(buffer, 8);
+}
+
+
+void ControlPack::sendb1b2(uint8_t cmd, uint8_t dst, uint8_t p1, uint16_t p2)
+{
+    uint8_t buffer[CP_MAX_PACKET];
+    
+    buffer[0] = CPC_HEADER;
+    buffer[1] = 6;
+    buffer[2] = _me;
+    buffer[3] = dst;
+    buffer[4] = cmd;
+    buffer[5] = p1;
+    buffer[6] = uint8_t(p2 >> 8);
+    buffer[7] = uint8_t((p2 << 8) >> 8);
+    buffer[8] = CPC_FOOTER;
+
+    Serial.write(buffer, 9);
 }
 
 

@@ -42,8 +42,8 @@ commands
 0x21 all on
 0x22 turn on specified i/o port, 0 - n
 0x23 turn off specified i/o port, 0 - n
-0x24 sequence on/off ports 0 thru n
-0x25 sequence on/off ports n thru 0
+0x24 sequence on/off ports 0 thru n, m milliseconds between each port
+0x25 sequence on/off ports n thru 0, m milliseconds between each port
 0x26 turn on specified i/o port, 0 - n, for specified milliseconds, m
 0xfd packet footer
 0xfe packet header
@@ -134,14 +134,14 @@ port 3 off
 sequent up/down
 ---------------
 
-sequence up
+sequence up, 500 milliseconds between
 
-    0xfe 0x03 0x00 0xff 0x24 0xfd
+    0xfe 0x05 0x00 0xff 0x24 0x01 0xf4 0xfd
 
 
-sequence down
+sequence down, 67 milliseconds between
 
-    0xfe 0x03 0x00 0xff 0x25 0xfd
+    0xfe 0x05 0x00 0xff 0x25 0x00 0x43 0xfd
 
 
 port on for time

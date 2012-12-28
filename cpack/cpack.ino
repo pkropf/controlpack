@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 
 /* Copyright (c) 2012 Peter Kropf. All rights reserved.
-
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -37,7 +37,6 @@ void test(uint8_t src, uint8_t dst, uint8_t p1, uint8_t p2)
 void setup()
 {
   Serial.begin(9600);
-  cp.scb_test(test);
 }
 
 
@@ -45,4 +44,3 @@ void loop()
 {
   cp.loop();
 }
-

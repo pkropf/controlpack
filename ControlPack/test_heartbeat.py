@@ -33,7 +33,7 @@ last_heartbeat = time.time()
 
 def heartbeat():
 	global last_heartbeat
-	
+
 	now = time.time()
 	print 'heartbeat', now - last_heartbeat
 	last_heartbeat = now

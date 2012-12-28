@@ -1,7 +1,7 @@
 /* -*- coding: utf-8 -*- */
 
 /* Copyright (c) 2012 Peter Kropf. All rights reserved.
-
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -62,7 +62,13 @@ class ControlPack
         ControlPack(uint8_t me);
 
         void loop();
-        void send(uint8_t cmd, uint8_t dst);
+        void send_all_off(uint8_t dst);
+        void send_all_on(uint8_t dst);
+        void send_port_off(uint8_t dst, uint8_t port);
+        void send_port_on(uint8_t dst, uint8_t port);
+        void send_sequence_up(uint8_t dst, uint16_t millis);
+        void send_sequence_down(uint8_t dst, uint16_t millis);
+        void send_timed_on(uint8_t dst, uint8_t port, uint16_t millis);
 
         void scb_test(cbfp fp);
         void scb_heartbeat(cbfp fp);
@@ -83,8 +89,12 @@ class ControlPack
 
     private:
     	void parse();
-    	void build_packet();
+    	void read_packet();
     	void send_heartbeat();
+        void send(uint8_t cmd, uint8_t dst);
+        void sendb1(uint8_t cmd, uint8_t dst, uint8_t p1);
+        void sendb2(uint8_t cmd, uint8_t dst, uint16_t p1);
+        void sendb1b2(uint8_t cmd, uint8_t dst, uint8_t p1, uint16_t p2);
 
         cbfp _cb_test;
         cbfp _cb_heartbeat;
