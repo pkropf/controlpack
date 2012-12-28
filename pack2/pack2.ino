@@ -32,7 +32,7 @@ void setup()
 {
   Serial.begin(9600);
   cp.send_version(CP_EVERYONE);
-  cp.send_model(CP_EVERYONE)
+  cp.send_model(CP_EVERYONE);
 }
 
 
