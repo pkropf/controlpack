@@ -26,17 +26,41 @@
 #include "quadpack.h"
 
 
+#define UP 1
+#define DOWN -1
+#define INACTIVE 0
+
+
 const int relay_count = 4;                         // number of relays connected
-int relays[relay_count] = {3, 4, 5, 6};             // relay pins
+int relays[relay_count] = {3, 4, 5, 6};            // relay pins
 int state[relay_count] = {0, 0, 0, 0};             // expected state of the relays, 0 off, 1 on
-unsigned long timers[relay_count] = {0, 0, 0, 0};  // duration timers for the relays
+unsigned long timers[relay_count] = {0, 0, 0, 0};  // timers for the relays
+int sequence_active = INACTIVE;                    // a sequence is active
+int sequence_current = 0;                          // current sequence relay
+unsigned long sequence_millis = 0;                 // millis between sequence relays
+unsigned long sequence_timer = 0;                  // time till current sequence step is complete
 
 
 ControlPack cp(QUADPACK_ID, CP_MODEL_4PACK);
 
 
+void kill_sequence()
+{
+  if (sequence_active != INACTIVE) {
+    sequence_active = INACTIVE;
+
+    for (int x = 0; x < relay_count; x++) {
+      state[x] = 0;
+      timers[x] = 0;
+    }
+  }
+}
+
+
 void all_off(uint8_t src, uint8_t dst)
 {
+  kill_sequence();
+
   for (int x = 0; x < relay_count; x++) {
     state[x] = 0;
   }
@@ -45,6 +69,8 @@ void all_off(uint8_t src, uint8_t dst)
 
 void all_on(uint8_t src, uint8_t dst)
 {
+  kill_sequence();
+
   for (int x = 0; x < relay_count; x++) {
     state[x] = 1;
   }
@@ -55,10 +81,63 @@ void all_timed(uint8_t src, uint8_t dst, uint16_t m)
 {
   unsigned long now = millis();
 
+  kill_sequence();
+
   for (int x = 0; x < relay_count; x++) {
     state[x] = 1;
     timers[x] = now + m;
   }
+}
+
+
+void port_off(uint8_t src, uint8_t dst, uint8_t port)
+{
+  kill_sequence();
+
+  if (port < relay_count) {
+    state[port] = 0;
+  }
+}
+
+
+void port_on(uint8_t src, uint8_t dst, uint8_t port)
+{
+  kill_sequence();
+
+  if (port < relay_count) {
+    state[port] = 1;
+  }
+}
+
+
+void port_timed(uint8_t src, uint8_t dst, uint8_t port, uint16_t m)
+{
+  unsigned long now = millis();
+
+  kill_sequence();
+
+  if (port < relay_count) {
+    state[port] = 1;
+    timers[port] = now + m;
+  }
+}
+
+
+void sequence_up(uint8_t src, uint8_t dst, uint16_t m)
+{
+    sequence_active = UP;
+    sequence_current = 0;
+    sequence_millis = m;
+    sequence_timer = 0;
+}
+
+
+void sequence_down(uint8_t src, uint8_t dst, uint16_t m)
+{
+    sequence_active = DOWN;
+    sequence_current = relay_count - 1;
+    sequence_millis = m;
+    sequence_timer = 0;
 }
 
 
@@ -73,9 +152,41 @@ void setup()
   cp.scb_all_off(all_off);
   cp.scb_all_on(all_on);
   cp.scb_all_timed(all_timed);
+  cp.scb_port_off(port_off);
+  cp.scb_port_on(port_on);
+  cp.scb_port_timed(port_timed);
+  cp.scb_sequence_up(sequence_up);
+  cp.scb_sequence_down(sequence_down);
 
   cp.send_version(CP_EVERYONE);
   cp.send_model(CP_EVERYONE);
+}
+
+
+void sequence_step()
+{
+  unsigned long now = millis();
+
+  switch (sequence_active) {
+  case UP:
+    if (sequence_current < relay_count && sequence_timer < now) {
+
+      sequence_timer = now + sequence_millis;
+      timers[sequence_current] = sequence_timer;
+      sequence_current += 1;
+    }
+    break;
+
+  case DOWN:
+    if (sequence_current >= 0 && sequence_timer < now) {
+
+      sequence_timer = now + sequence_millis;
+      timers[sequence_current] = sequence_timer;
+      sequence_current -= 1;
+    }
+    break;
+
+  }
 }
 
 
@@ -106,6 +217,7 @@ void update_relays()
 void loop()
 {
   cp.loop();
+  sequence_step();
   check_timers();
   update_relays();
 }
