@@ -83,7 +83,7 @@ class ControlPack
 
     private:
     	void parse();
-    	void fill_buffer();
+    	void build_packet();
     	void send_heartbeat();
 
         cbfp _cb_test;

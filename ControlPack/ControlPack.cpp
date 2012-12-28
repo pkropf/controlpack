@@ -22,7 +22,6 @@
  */
 
 
-
 #include "ControlPack.h"
 
 
@@ -55,7 +54,7 @@ ControlPack::ControlPack(uint8_t me)
 
 void ControlPack::loop()
 {
-    fill_buffer();
+    build_packet();
     send_heartbeat();
 }
 
@@ -88,7 +87,7 @@ void ControlPack::send_heartbeat()
 }
 
 
-void ControlPack::fill_buffer()
+void ControlPack::build_packet()
 {
     uint8_t b = 0;
 
