@@ -25,10 +25,10 @@
 #include <ControlPack.h>
 
 
-ControlPack cp;
+ControlPack cp(0);
 
 
-void test()
+void test(uint8_t src, uint8_t dst, uint8_t p1, uint8_t p2)
 {
   Serial.println("test");
 }
