@@ -23,6 +23,7 @@
 
 
 #include <ControlPack.h>
+#include "quadpack.h"
 
 
 const int relay_count = 4;                         // number of relays connected
@@ -31,7 +32,7 @@ int state[relay_count] = {0, 0, 0, 0};             // expected state of the rela
 unsigned long timers[relay_count] = {0, 0, 0, 0};  // duration timers for the relays
 
 
-ControlPack cp(1, CP_MODEL_4PACK);
+ControlPack cp(QUADPACK_ID, CP_MODEL_4PACK);
 
 
 void all_off(uint8_t src, uint8_t dst)
