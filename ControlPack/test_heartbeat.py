@@ -32,17 +32,19 @@ baud = 9600
 last_heartbeat = time.time()
 
 def heartbeat():
-	global last_heartbeat
+    global last_heartbeat
 
-	now = time.time()
-	print 'heartbeat', now - last_heartbeat
-	last_heartbeat = now
+    now = time.time()
+    print 'heartbeat', now - last_heartbeat
+    last_heartbeat = now
+
+    cp.send_heartbeat()
 
 
 cp = ControlPack.ControlPack(port, baud)
 cp.heartbeat = heartbeat
 
 
-for x in range(10000):
+for x in range(100000):
     cp.loop()
     time.sleep(0.001)

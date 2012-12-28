@@ -41,7 +41,7 @@ int sequence_current = 0;                          // current sequence relay
 unsigned long sequence_millis = 0;                 // millis between sequence relays
 unsigned long sequence_timer = 0;                  // time till current sequence step is complete
 
-unsigned long last_heartbeat = 0;                  // last time we heard a heartbeat from the coordinator
+unsigned long last_heartbeat = millis();           // last time we heard a heartbeat from the coordinator
 const int heartbeat_led_pin =  13;                 // led to flash when we're receiving a heartbeat
 int heartbeat_led_state = LOW;                     // state of the heartbeat led
 long heartbeat_led_previous = 0;                   // last time the heartbeat led was updated

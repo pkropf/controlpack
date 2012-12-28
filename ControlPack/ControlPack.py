@@ -44,27 +44,42 @@ CPC_FOOTER         = 0xfd
 CPC_HEADER         = 0xfe
 
 
+CP_EVERYONE        = 0x20
+
+
 class ControlPack(object):
-	def __init__(self, port, baud):
-		self.port = port
-		self.baude = baud
-		self.ser = serial.Serial(port, baud, timeout=1)
-		self.found_header = 0
-		self.length = 0
+    def __init__(self, port, baud):
+        self.port = port
+        self.baude = baud
+        self.ser = serial.Serial(port, baud, timeout=1)
+        self.found_header = 0
+        self.length = 0
+        self.me = 0
 
 
-	def loop(self):
-		if self.ser.inWaiting() > 0:
-			b = ord(self.ser.read(1))
-			if b == CPC_HEADER:
-				self.found_header = 1
+    def send_heartbeat(self):
+        self.send(CPC_HEARTBEAT, CP_EVERYONE);
 
-			elif b == CPC_HEARTBEAT:
-				if self.found_header and self.length:
-					self.heartbeat()
-				else:
-					raise KeyError, b
 
-			else:
-				if self.found_header and self.length == 0:
-					self.length = b
+    def send(self, cmd, dst):
+        buffer = chr(CPC_HEADER) + chr(3) + chr(self.me) + chr(dst) + chr(cmd) + chr(CPC_FOOTER)
+
+        self.ser.write(buffer)
+        self.ser.flush()
+
+
+    def loop(self):
+        if self.ser.inWaiting() > 0:
+            b = ord(self.ser.read(1))
+            if b == CPC_HEADER:
+                self.found_header = 1
+
+            elif b == CPC_HEARTBEAT:
+                if self.found_header and self.length:
+                    self.heartbeat()
+                else:
+                    raise KeyError, b
+
+            else:
+                if self.found_header and self.length == 0:
+                    self.length = b

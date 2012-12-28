@@ -304,6 +304,7 @@ void ControlPack::send(uint8_t cmd, uint8_t dst)
     buffer[5] = CPC_FOOTER;
 
     Serial.write(buffer, 6);
+    Serial.flush();
 }
 
 
