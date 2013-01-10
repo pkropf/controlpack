@@ -19,19 +19,19 @@
 // THE SOFTWARE.
 
 
-int range_lower =  125;   // low end for poof rate in milliseconds
-int range_upper = 2000;   // upper end for poof rate in milliseconds
+int range_lower =  31;   // low end for poof rate in milliseconds
+int range_upper = 500;   // upper end for poof rate in milliseconds
 int halfway = 531;        // potentiometers are not linear in their sweep, 0 to 531 is the left 
                           //   side range and 532 to 1023 is the right side range of the dial
                           //   movement
 int flatspot = 20;        // define a range within which we'll be at the top of the potentiometer
-int duration = 31;        // 1/32 second open time for a stack pin
+int duration = 45;        // 1/32 second open time for a stack pin
 int potPin = A2;          // which pin to read the pot value
 int ledPin = 13;          // ping to trip to show that we're doing something
 
 int stack_count = 4;                       // number of poofers on the stacks
-int east_stack_pins[4] = {1, 2, 3, 4};     // output pins for the east stack
-int west_stack_pins[4] = {8, 7, 6, 5};     // output pins for the west stack
+int east_stack_pins[4] = {35, 34, 33, 32};     // output pins for the east stack
+int west_stack_pins[4] = {28, 29, 30, 31};     // output pins for the west stack
 int stack_idx = 0;                         // current pin index
 int stack_active_pin = 9;                  // pin to read when checking if the stack is active
 int stack_high = false;                    // indicator for any stack pin being high
@@ -87,24 +87,26 @@ void trigger_next(int wait)
     return;
   }
 
-  Serial.println(wait);
+  // Serial.println(wait);
   
   if (stack_high == false) {          // there are no stacks pins set high
     if ((now - stack_last) > await) {
       digitalWrite(east_stack_pins[stack_idx], HIGH);
       digitalWrite(west_stack_pins[stack_idx], HIGH);
+      digitalWrite(ledPin, HIGH);
       stack_high = true;
       stack_last = millis();
-      Serial.println("stack high");
+      // Serial.println("stack high");
     }
 
   } else {
     if ((now - stack_last) > duration) {
       digitalWrite(east_stack_pins[stack_idx], LOW);
       digitalWrite(west_stack_pins[stack_idx], LOW);
+      digitalWrite(ledPin, LOW);
       stack_high = false;
       stack_last = millis();
-      Serial.println("stack low");
+      // Serial.println("stack low");
 
       if (wait < 0) {
         if (stack_idx == 0) {
@@ -128,7 +130,7 @@ void trigger_next(int wait)
 
 void loop()
 {
-  if (digitalRead(stack_active_pin) == LOW) {       // we've got a button pressed!
+  if (digitalRead(stack_active_pin) == HIGH) {       // we've got a button pres
     trigger_next(transpose(analogRead(potPin)));
 
   } else {
@@ -138,6 +140,7 @@ void loop()
         digitalWrite(east_stack_pins[idx], LOW);
         digitalWrite(west_stack_pins[idx], LOW);
     }
+    digitalWrite(ledPin, LOW);
   }
 }
 
