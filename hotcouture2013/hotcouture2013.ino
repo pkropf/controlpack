@@ -30,8 +30,8 @@ int potPin = A2;          // which pin to read the pot value
 int ledPin = 13;          // ping to trip to show that we're doing something
 
 int stack_count = 4;                       // number of poofers on the stacks
-int east_stack_pins[4] = [1, 2, 3, 4];     // output pins for the east stack
-int west_stack_pins[4] = [8, 7, 6, 5];     // output pins for the west stack
+int east_stack_pins[4] = {1, 2, 3, 4};     // output pins for the east stack
+int west_stack_pins[4] = {8, 7, 6, 5};     // output pins for the west stack
 int stack_idx = 0;                         // current pin index
 int stack_active_pin = 9;                  // pin to read when checking if the stack is active
 int stack_high = false;                    // indicator for any stack pin being high
@@ -43,7 +43,8 @@ void setup() {
 
   pinMode(ledPin, OUTPUT);
 
-  pinMode(stack_active_pin, INPUT);
+  pinMode(stack_active_pin, INPUT);         // ping to look for the stack sequencer switch
+  digitalWrite(stack_active_pin, HIGH);     // turn on pullup resistor
 
   for (int i = 0; i++; i < stack_count) {
     pinMode(east_stack_pins[i], OUTPUT);
@@ -56,23 +57,23 @@ int transpose(int v)
 {
   int m = 0;
   
-  Serial.print(v);
+  // Serial.print(v);
 
   if (v <= halfway - flatspot) {
-    Serial.print(" - left - ");
-    m = map(v, 0, halfway - flatspot, range_lower, range_upper);
+    // Serial.print(" - left - ");
+    m = 1 - map(v, 0, halfway - flatspot, range_lower, range_upper);
   } else {
 
     if (v > halfway + flatspot) {
-      Serial.print(" - right - ");
+      // Serial.print(" - right - ");
       m = map(v, halfway + flatspot + 1, 1023, range_upper, range_lower);
     } else {
 
-      Serial.print(" - flatspot - ");
+      // Serial.print(" - flatspot - ");
       m = 0;
     }
   }
-  Serial.println(m);
+  // Serial.println(m);
   
   return m;
 }
@@ -80,29 +81,48 @@ int transpose(int v)
 
 void trigger_next(int wait)
 {
-  if (stack_high) {          // there is currently a stack pin set to high
-    if (wait < 0) {
-      
-    } else {
-      if (wait > 0) {
-        
+  unsigned long now = millis();
+  Serial.println(wait);
+  
+  if (stack_high == false) {          // there are no stacks pins set high
+    if ((now - stack_last) > wait) {
+      digitalWrite(east_stack_pins[stack_idx], HIGH);
+      digitalWrite(west_stack_pins[stack_idx], HIGH);
+      stack_high = true;
+      stack_last = millis();
+      Serial.println("stack high");
+    }
+
+  } else {
+    if ((now - stack_last) > duration) {
+      digitalWrite(east_stack_pins[stack_idx], LOW);
+      digitalWrite(west_stack_pins[stack_idx], LOW);
+      stack_high = false;
+      stack_last = millis();
+      Serial.println("stack low");
+
+      if (wait < 0) {
+        if (stack_idx == 0) {
+          stack_idx = stack_count - 1;
+        } else {
+          stack_idx -= 1;
+        }
+      } else {
+        if (wait > 0) {
+          if (stack_idx == stack_count - 1) {
+            stack_idx = 0;
+          } else {
+            stack_idx += 1;
+          }
+        }
       }
     }
-    
-  } else {
-    digitalWrite(east_stack_pins[stack_idx], HIGH);
-    digitalWrite(west_stack_pins[stack_idx], HIGH);
-    stack_high = true;
   }
-
-  digitalWrite(ledPin, HIGH);
-  delay(.5); 
-  digitalWrite(ledPin, LOW);
-  delay(.5);
 }
 
 
-void loop() {
+void loop()
+{
   if (digitalRead(stack_active_pin)) {
     trigger_next(transpose(analogRead(potPin)));
 
@@ -114,5 +134,6 @@ void loop() {
         digitalWrite(west_stack_pins[idx], LOW);
     }
   }
+  delay(250);
 }
 
