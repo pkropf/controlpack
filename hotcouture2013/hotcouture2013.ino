@@ -81,11 +81,16 @@ int transpose(int v)
 
 void trigger_next(int wait)
 {
+  int await = abs(wait);
   unsigned long now = millis();
+  if (wait == 0) {
+    return;
+  }
+
   Serial.println(wait);
   
   if (stack_high == false) {          // there are no stacks pins set high
-    if ((now - stack_last) > wait) {
+    if ((now - stack_last) > await) {
       digitalWrite(east_stack_pins[stack_idx], HIGH);
       digitalWrite(west_stack_pins[stack_idx], HIGH);
       stack_high = true;
@@ -123,7 +128,7 @@ void trigger_next(int wait)
 
 void loop()
 {
-  if (digitalRead(stack_active_pin)) {
+  if (digitalRead(stack_active_pin) == LOW) {       // we've got a button pressed!
     trigger_next(transpose(analogRead(potPin)));
 
   } else {
@@ -134,6 +139,5 @@ void loop()
         digitalWrite(west_stack_pins[idx], LOW);
     }
   }
-  delay(250);
 }
 
