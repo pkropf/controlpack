@@ -39,16 +39,20 @@ void setup() {
 
 void loop() {
   int m = 0;
+
   val = analogRead(potPin);
   Serial.print(val);
+
   if (val <= halfway - flatspot) {
     Serial.print(" - left - ");
     m = map(val, 0, halfway - flatspot, range_lower, range_upper);
   } else {
+
     if (val > halfway + flatspot) {
       Serial.print(" - right - ");
       m = map(val, halfway + flatspot + 1, 1023, range_upper, range_lower);
     } else {
+
       Serial.print(" - flatspot - ");
       m = 0;
     }
@@ -56,8 +60,8 @@ void loop() {
   Serial.println(m);
 
   digitalWrite(ledPin, HIGH);
-  delay(.25); 
+  delay(.5); 
   digitalWrite(ledPin, LOW);
-  delay(.25);
+  delay(.5);
 }
 
