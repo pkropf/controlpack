@@ -25,7 +25,9 @@ int halfway = 531;        // potentiometers are not linear in their sweep, 0 to 
                           //   side range and 532 to 1023 is the right side range of the dial
                           //   movement
 int flatspot = 20;        // define a range within which we'll be at the top of the potentiometer
-int duration = 45;        // 1/32 second open time for a stack pin
+int duration = 0;
+int duration_low = 15;        // 1/32 second open time for a stack pin
+int duration_high = 250;   
 int potPin = A2;          // which pin to read the pot value
 int ledPin = 13;          // ping to trip to show that we're doing something
 
@@ -87,6 +89,7 @@ void trigger_next(int wait)
     return;
   }
 
+  duration = map(await, range_lower, range_upper, duration_low, duration_high);
   // Serial.println(wait);
   
   if (stack_high == false) {          // there are no stacks pins set high
@@ -130,7 +133,7 @@ void trigger_next(int wait)
 
 void loop()
 {
-  if (digitalRead(stack_active_pin) == HIGH) {       // we've got a button pres
+  if (digitalRead(stack_active_pin) == LOW) {       // we've got a button press
     trigger_next(transpose(analogRead(potPin)));
 
   } else {
