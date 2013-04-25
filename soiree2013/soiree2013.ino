@@ -36,6 +36,8 @@ int poofer_pins[8] = {35, 34, 33, 32, 28, 29, 30, 31};     // output pins for th
 int poofer_idx = 0;                         // current pin index
 int poofer_active_pin = 9;                  // pin to read when checking if the poofers are active
 int poofer_high = false;                    // indicator for any poofer pin being high
+int poofer_all_pin = 10;                    // pin to read when checking is all the poofers are on
+int poofer_all_high = false;                // indicator for all the poofers being active
 unsigned long poofer_last = millis();       // when was the last time we tripped a pin?
 
 
@@ -44,7 +46,9 @@ void setup() {
 
   pinMode(ledPin, OUTPUT);
 
-  pinMode(poofer_active_pin, INPUT);         // ping to look for the poofer sequencer switch
+  pinMode(poofer_active_pin, INPUT);
+  pinMode(poofer_all_pin, INPUT);
+  
   digitalWrite(poofer_active_pin, HIGH);     // turn on pullup resistor
 
   for (int i = 0; i++; i < poofer_count) {
@@ -129,16 +133,39 @@ void trigger_next(int wait)
 
 void loop()
 {
-  if (digitalRead(poofer_active_pin) == LOW) {       // we've got a button press
-    trigger_next(transpose(analogRead(potPin)));
+  if (digitalRead(poofer_all_pin) == HIGH) {         // we've got a button press
+    Serial.println("poofer all high");
+    if (poofer_all_high == false) {
 
-  } else {
-    poofer_idx = 0;
-
-    for(int idx = 0; idx < poofer_count; idx++) {
-        digitalWrite(poofer_pins[idx], LOW);
+      for(int idx = 0; idx < poofer_count; idx++) {
+          digitalWrite(poofer_pins[idx], HIGH);
+      }
+      digitalWrite(ledPin, HIGH);
+      poofer_all_high = true;
     }
-    digitalWrite(ledPin, LOW);
-  }
+
+  } else { // if poofer_all_pin
+    Serial.println("poofer all low");
+
+    if (poofer_all_high == true) {
+      for(int idx = 0; idx < poofer_count; idx++) {
+          digitalWrite(poofer_pins[idx], LOW);
+      }
+      digitalWrite(ledPin, LOW);
+      poofer_all_high = false;
+    }
+
+    if (digitalRead(poofer_active_pin) == LOW) {       // we've got a button press
+      trigger_next(transpose(analogRead(potPin)));
+
+    } else {
+      poofer_idx = 0;
+
+      for(int idx = 0; idx < poofer_count; idx++) {
+          digitalWrite(poofer_pins[idx], LOW);
+      }
+      digitalWrite(ledPin, LOW);
+    } // else poofer_active_pin
+  } // else poofer_all_pin
 }
 
