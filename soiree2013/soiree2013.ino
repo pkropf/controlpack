@@ -26,18 +26,17 @@ int halfway = 531;        // potentiometers are not linear in their sweep, 0 to 
                           //   movement
 int flatspot = 20;        // define a range within which we'll be at the top of the potentiometer
 int duration = 0;
-int duration_low = 15;        // 1/32 second open time for a stack pin
+int duration_low = 15;        // 1/32 second open time for a poofer pin
 int duration_high = 250;   
 int potPin = A2;          // which pin to read the pot value
 int ledPin = 13;          // ping to trip to show that we're doing something
 
-int stack_count = 4;                       // number of poofers on the stacks
-int east_stack_pins[4] = {35, 34, 33, 32};     // output pins for the east stack
-int west_stack_pins[4] = {28, 29, 30, 31};     // output pins for the west stack
-int stack_idx = 0;                         // current pin index
-int stack_active_pin = 9;                  // pin to read when checking if the stack is active
-int stack_high = false;                    // indicator for any stack pin being high
-unsigned long stack_last = millis();       // when was the last time we tripped a pin?
+int poofer_count = 8;                       // number of poofers
+int poofer_pins[8] = {35, 34, 33, 32, 28, 29, 30, 31};     // output pins for the poofers
+int poofer_idx = 0;                         // current pin index
+int poofer_active_pin = 9;                  // pin to read when checking if the poofers are active
+int poofer_high = false;                    // indicator for any poofer pin being high
+unsigned long poofer_last = millis();       // when was the last time we tripped a pin?
 
 
 void setup() {
@@ -45,12 +44,11 @@ void setup() {
 
   pinMode(ledPin, OUTPUT);
 
-  pinMode(stack_active_pin, INPUT);         // ping to look for the stack sequencer switch
-  digitalWrite(stack_active_pin, HIGH);     // turn on pullup resistor
+  pinMode(poofer_active_pin, INPUT);         // ping to look for the poofer sequencer switch
+  digitalWrite(poofer_active_pin, HIGH);     // turn on pullup resistor
 
-  for (int i = 0; i++; i < stack_count) {
-    pinMode(east_stack_pins[i], OUTPUT);
-    pinMode(west_stack_pins[i], OUTPUT);
+  for (int i = 0; i++; i < poofer_count) {
+    pinMode(poofer_pins[i], OUTPUT);
   }
 }
 
@@ -92,37 +90,35 @@ void trigger_next(int wait)
   duration = map(await, range_lower, range_upper, duration_low, duration_high);
   // Serial.println(wait);
   
-  if (stack_high == false) {          // there are no stacks pins set high
-    if ((now - stack_last) > await) {
-      digitalWrite(east_stack_pins[stack_idx], HIGH);
-      digitalWrite(west_stack_pins[stack_idx], HIGH);
+  if (poofer_high == false) {          // there are no poofer pins set high
+    if ((now - poofer_last) > await) {
+      digitalWrite(poofer_pins[poofer_idx], HIGH);
       digitalWrite(ledPin, HIGH);
-      stack_high = true;
-      stack_last = millis();
-      // Serial.println("stack high");
+      poofer_high = true;
+      poofer_last = millis();
+      // Serial.println("poofer high");
     }
 
   } else {
-    if ((now - stack_last) > duration) {
-      digitalWrite(east_stack_pins[stack_idx], LOW);
-      digitalWrite(west_stack_pins[stack_idx], LOW);
+    if ((now - poofer_last) > duration) {
+      digitalWrite(poofer_pins[poofer_idx], LOW);
       digitalWrite(ledPin, LOW);
-      stack_high = false;
-      stack_last = millis();
-      // Serial.println("stack low");
+      poofer_high = false;
+      poofer_last = millis();
+      // Serial.println("poofer low");
 
       if (wait < 0) {
-        if (stack_idx == 0) {
-          stack_idx = stack_count - 1;
+        if (poofer_idx == 0) {
+          poofer_idx = poofer_count - 1;
         } else {
-          stack_idx -= 1;
+          poofer_idx -= 1;
         }
       } else {
         if (wait > 0) {
-          if (stack_idx == stack_count - 1) {
-            stack_idx = 0;
+          if (poofer_idx == poofer_count - 1) {
+            poofer_idx = 0;
           } else {
-            stack_idx += 1;
+            poofer_idx += 1;
           }
         }
       }
@@ -133,15 +129,14 @@ void trigger_next(int wait)
 
 void loop()
 {
-  if (digitalRead(stack_active_pin) == LOW) {       // we've got a button press
+  if (digitalRead(poofer_active_pin) == LOW) {       // we've got a button press
     trigger_next(transpose(analogRead(potPin)));
 
   } else {
-    stack_idx = 0;
+    poofer_idx = 0;
 
-    for(int idx = 0; idx < stack_count; idx++) {
-        digitalWrite(east_stack_pins[idx], LOW);
-        digitalWrite(west_stack_pins[idx], LOW);
+    for(int idx = 0; idx < poofer_count; idx++) {
+        digitalWrite(poofer_pins[idx], LOW);
     }
     digitalWrite(ledPin, LOW);
   }
