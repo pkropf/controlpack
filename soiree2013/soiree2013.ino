@@ -134,7 +134,7 @@ void trigger_next(int wait)
 void loop()
 {
   if (digitalRead(poofer_all_pin) == HIGH) {         // we've got a button press
-    Serial.println("poofer all high");
+    // Serial.println("poofer all high");
     if (poofer_all_high == false) {
 
       for(int idx = 0; idx < poofer_count; idx++) {
@@ -145,7 +145,7 @@ void loop()
     }
 
   } else { // if poofer_all_pin
-    Serial.println("poofer all low");
+    // Serial.println("poofer all low");
 
     if (poofer_all_high == true) {
       for(int idx = 0; idx < poofer_count; idx++) {
