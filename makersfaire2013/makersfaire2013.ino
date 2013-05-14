@@ -33,13 +33,13 @@ const int t3b_idx = 3;
 const int t3c_idx = 4;
 
 
-const int pin[5]                = {     4,     5,     6,     7,     8 };  // digital i/o pins
-const int min_open[5]           = {  2000,  125,     62,    62,    62 };  // minumum time to remain open
-const int max_open[5]           = {  2000,  500,    500,   500,   500 };  // maximum time to remain open
-const int refresh[5]            = { 60000, 60000, 10000, 10000, 10000 };  // time to refresh tank
-int state[5]                    = {     0,     0,     0,     0,     0 };  // current state
-unsigned long int last_open[5]  = {     0,     0,     0,     0,     0 };  // last time opened
-int remain_open[5]              = {     0,     0,     0,     0,     0 };  // time to remain open
+const int pin[5]               = {     4,     5,     6,     7,     8 };  // digital i/o pins
+const int min_open[5]          = {  2000,  125,     62,    62,    62 };  // minumum time to remain open
+const int max_open[5]          = {  2000,  500,    500,   500,   500 };  // maximum time to remain open
+const unsigned long refresh[5] = { 60000, 60000, 10000, 10000, 10000 };  // time to refresh tank
+int state[5]                   = {     0,     0,     0,     0,     0 };  // current state
+unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last time opened
+int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
 
 
 void setup()
@@ -47,9 +47,6 @@ void setup()
   Serial.begin(57600);
 
   for (int idx = 0; idx < t_count; idx++) {
-    Serial.print("setup  ");
-    Serial.println(idx);
-    last_open[idx] = millis();
     pinMode(pin[idx], OUTPUT);
   }
 
@@ -57,22 +54,35 @@ void setup()
 }
 
 
+void show_state(int idx)
+{
+  Serial.print(idx);
+  Serial.print(" ");
+  Serial.print(remain_open[idx]);
+  Serial.print(" ");
+  Serial.print(last_open[idx]);
+  Serial.print(" ");
+  Serial.print(now);
+  Serial.print(" ");
+  Serial.print(last);
+  Serial.print(" ");
+  Serial.print(refresh[idx]);
+  Serial.println("");
+}
+
+
 void trip(int idx)
 {
   if (state[idx] == 0) {
-    if ((millis() - last_open[idx]) > refresh[idx]) {
+    unsigned long now = millis();
+    unsigned long last = now - last_open[idx];
+    if (last > refresh[idx]) {
       state[idx] = 1;
       remain_open[idx] = random(min_open[idx], max_open[idx]);
       last_open[idx] = millis();
-      Serial.print("trip  ");
-      Serial.print(idx);
-      Serial.print(" ");
-      Serial.print(remain_open[idx]);
-      Serial.print(" ");
-      Serial.print(last_open[idx]);
-      Serial.println("");
       digitalWrite(pin[idx], HIGH);
     }
+    show_state();
   }
 }
 
@@ -128,8 +138,6 @@ void close_down()
   for (int idx = 0; idx < t_count; idx++) {
     if (state[idx] == 1) {
       if ((millis() - last_open[idx]) > remain_open[idx]) {
-        Serial.print("close ");
-        Serial.println(idx);
         digitalWrite(pin[idx], LOW);
         state[idx] = 0;
       }
