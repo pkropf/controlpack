@@ -38,7 +38,7 @@ const int t3c_idx = 4;
 
 const int pin[5]               = {     4,     5,     6,     7,     8 };  // digital i/o pins
 const int min_open[5]          = {  2000,  125,     62,    62,    62 };  // minumum time to remain open
-const int max_open[5]          = {  2000,  500,    500,   500,   500 };  // maximum time to remain open
+const int max_open[5]          = {  2000,  250,    250,   250,   250 };  // maximum time to remain open
 const unsigned long refresh[5] = { 60000, 60000, 10000, 10000, 10000 };  // time to refresh tank
 int state[5]                   = {     0,     0,     0,     0,     0 };  // current state
 unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last time opened
@@ -92,24 +92,57 @@ void trip_t3()
 }
 
 
-void trip_t3a()
+void trip_t3_left()
 {
-  Serial.println("trip t3a");
-  trip(t3a_idx);
+  Serial.println("trip t3 left");
+  int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
+  int rounds = random(1, 5);
+
+  digitalWrite(pin[t1_idx], LOW);
+  state[t1_idx] = 0;
+  digitalWrite(pin[t2_idx], LOW);
+  state[t2_idx] = 0;
+
+  for (int i = 0; i < rounds; i++) {
+    digitalWrite(pin[t3a_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3a_idx], LOW);
+
+    digitalWrite(pin[t3b_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3b_idx], LOW);
+
+    digitalWrite(pin[t3c_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3c_idx], LOW);
+  }
 }
 
 
-void trip_t3b()
+void trip_t3_right()
 {
-  Serial.println("trip t3b");
-  trip(t3b_idx);
-}
+  Serial.println("trip t3 right");
+  int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
+  int rounds = random(1, 5);
 
+  digitalWrite(pin[t1_idx], LOW);
+  state[t1_idx] = 0;
+  digitalWrite(pin[t2_idx], LOW);
+  state[t2_idx] = 0;
 
-void trip_t3c()
-{
-  Serial.println("trip t3c");
-  trip(t3c_idx);
+  for (int i = 0; i < rounds; i++) {
+    digitalWrite(pin[t3c_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3c_idx], LOW);
+
+    digitalWrite(pin[t3b_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3b_idx], LOW);
+
+    digitalWrite(pin[t3a_idx], HIGH);
+    delay(pause);
+    digitalWrite(pin[t3a_idx], LOW);
+  }
 }
 
 
@@ -126,8 +159,12 @@ void close_down()
 }
 
 
-const int trippers_count = 7;
-tripperPtr trippers[7] = {trip_all, trip_t1, trip_t2, trip_t3, trip_t3a, trip_t3b, trip_t3c};
+const int trippers_count = 6;
+tripperPtr trippers[6] = {
+  trip_all,       trip_t1,
+  trip_t2,        trip_t3,
+  trip_t3_left,   trip_t3_right
+};
 
 
 void setup()
@@ -145,6 +182,7 @@ void setup()
 void loop()
 {
   int tidx = random(0, trippers_count);
+  // tidx = random(trippers_count - 2, trippers_count);
   static int pause = 0;
   static unsigned long last = 0;
   unsigned long now = millis();
@@ -152,7 +190,9 @@ void loop()
   if (now > last + pause) {
     (*trippers[tidx])();
     last = now;
-    pause = random(1000, 5000);
+    pause = random(2000, 20000);
+    Serial.print("pause ");
+    Serial.println(pause);
   }
   close_down();
 }
