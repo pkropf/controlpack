@@ -45,6 +45,21 @@ unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last
 int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
 
 
+void all_off()
+{
+  digitalWrite(pin[t1_idx], LOW);
+  state[t1_idx] = 0;
+  digitalWrite(pin[t2_idx], LOW);
+  state[t2_idx] = 0;
+  digitalWrite(pin[t3a_idx], LOW);
+  state[t3a_idx] = 0;
+  digitalWrite(pin[t3b_idx], LOW);
+  state[t3b_idx] = 0;
+  digitalWrite(pin[t3c_idx], LOW);
+  state[t3c_idx] = 0;
+}
+
+
 void trip(int idx)
 {
   if (state[idx] == 0) {
@@ -62,7 +77,7 @@ void trip(int idx)
 
 void trip_all()
 {
-  Serial.println("trip all");
+  // Serial.println("trip all");
   for (int idx = 0; idx < t_count; idx++) {
     trip(idx);
   }
@@ -71,77 +86,79 @@ void trip_all()
 
 void trip_t1()
 {
-  Serial.println("trip t1");
+  // Serial.println("trip t1");
   trip(t1_idx);
 }
 
 
 void trip_t2()
 {
-  Serial.println("trip t2");
+  // Serial.println("trip t2");
   trip(t2_idx);
+}
+
+
+void trip_t2_boomboom()
+{
+  unsigned long last = millis() - last_open[t2_idx];
+
+  // Serial.println("trip t2 boomboom");
+
+  all_off();
+
+  if (last > refresh[t2_idx]) {
+    delay(refresh[t2_idx]);
+  }
+
+  digitalWrite(pin[t2_idx], HIGH);
+  delay(min_open[t2_idx]);
+  digitalWrite(pin[t2_idx], LOW);
+  delay(random(min_open[t2_idx], max_open[t2_idx]));
+  digitalWrite(pin[t2_idx], HIGH);
+  delay(max_open[t2_idx]);
+  digitalWrite(pin[t2_idx], LOW);
+
+  last_open[t2_idx] = millis();
 }
 
 
 void trip_t3()
 {
-  Serial.println("trip t3");
+  // Serial.println("trip t3");
   trip(t3a_idx);
   trip(t3b_idx);
   trip(t3c_idx);
 }
 
 
-void trip_t3_left()
+void trip_t3_spin()
 {
-  Serial.println("trip t3 left");
+  // Serial.println("trip t3 spin");
   int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
   int rounds = random(1, 5);
+  int direction = random(0, 1);
+  int i1 = t3a_idx, i2 = t3b_idx, i3 = t3c_idx;
 
-  digitalWrite(pin[t1_idx], LOW);
-  state[t1_idx] = 0;
-  digitalWrite(pin[t2_idx], LOW);
-  state[t2_idx] = 0;
-
-  for (int i = 0; i < rounds; i++) {
-    digitalWrite(pin[t3a_idx], HIGH);
-    delay(pause);
-    digitalWrite(pin[t3a_idx], LOW);
-
-    digitalWrite(pin[t3b_idx], HIGH);
-    delay(pause);
-    digitalWrite(pin[t3b_idx], LOW);
-
-    digitalWrite(pin[t3c_idx], HIGH);
-    delay(pause);
-    digitalWrite(pin[t3c_idx], LOW);
+  if (direction == 1) {
+    i1 = t3c_idx;
+    i2 = t3b_idx;
+    i3 = t3a_idx;
   }
-}
 
-
-void trip_t3_right()
-{
-  Serial.println("trip t3 right");
-  int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
-  int rounds = random(1, 5);
-
-  digitalWrite(pin[t1_idx], LOW);
-  state[t1_idx] = 0;
-  digitalWrite(pin[t2_idx], LOW);
-  state[t2_idx] = 0;
+  all_off();
 
   for (int i = 0; i < rounds; i++) {
-    digitalWrite(pin[t3c_idx], HIGH);
+    digitalWrite(pin[i1], HIGH);
     delay(pause);
-    digitalWrite(pin[t3c_idx], LOW);
+    digitalWrite(pin[i1], LOW);
 
-    digitalWrite(pin[t3b_idx], HIGH);
+    digitalWrite(pin[i2], HIGH);
     delay(pause);
-    digitalWrite(pin[t3b_idx], LOW);
+    digitalWrite(pin[i2], LOW);
 
-    digitalWrite(pin[t3a_idx], HIGH);
+    digitalWrite(pin[i3], HIGH);
     delay(pause);
-    digitalWrite(pin[t3a_idx], LOW);
+    digitalWrite(pin[i3], LOW);
   }
 }
 
@@ -159,11 +176,12 @@ void close_down()
 }
 
 
-const int trippers_count = 6;
-tripperPtr trippers[6] = {
-  trip_all,       trip_t1,
-  trip_t2,        trip_t3,
-  trip_t3_left,   trip_t3_right
+const int trippers_count = 7;
+tripperPtr trippers[7] = {
+  trip_all,
+  trip_t1,        trip_t1,
+  trip_t2,        trip_t2_boomboom,
+  trip_t3,        trip_t3_spin
 };
 
 
@@ -183,17 +201,18 @@ void loop()
 {
   int tidx = random(0, trippers_count);
   // tidx = random(trippers_count - 2, trippers_count);
-  static int pause = 0;
+  // tidx = 4;
+  static unsigned long pause = 7000;
   static unsigned long last = 0;
   unsigned long now = millis();
 
   if (now > last + pause) {
     (*trippers[tidx])();
     last = now;
-    pause = random(2000, 20000);
-    Serial.print("pause ");
-    Serial.println(pause);
+    pause = random(30000, 200000);
+    // Serial.print("pause ");
+    // Serial.println(pause);
   }
   close_down();
 }
-
+ 
