@@ -25,6 +25,9 @@
 // t3 - third has 3 fire extinguisher tank accumulators
 
 
+typedef void(*tripperPtr)();
+
+
 const int t_count = 5;
 const int t1_idx  = 0;
 const int t2_idx  = 1;
@@ -42,35 +45,6 @@ unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last
 int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
 
 
-void setup()
-{
-  Serial.begin(57600);
-
-  for (int idx = 0; idx < t_count; idx++) {
-    pinMode(pin[idx], OUTPUT);
-  }
-
-  randomSeed(analogRead(0));
-}
-
-
-void show_state(int idx)
-{
-  Serial.print(idx);
-  Serial.print(" ");
-  Serial.print(remain_open[idx]);
-  Serial.print(" ");
-  Serial.print(last_open[idx]);
-  Serial.print(" ");
-  Serial.print(now);
-  Serial.print(" ");
-  Serial.print(last);
-  Serial.print(" ");
-  Serial.print(refresh[idx]);
-  Serial.println("");
-}
-
-
 void trip(int idx)
 {
   if (state[idx] == 0) {
@@ -82,13 +56,13 @@ void trip(int idx)
       last_open[idx] = millis();
       digitalWrite(pin[idx], HIGH);
     }
-    show_state();
   }
 }
 
 
 void trip_all()
 {
+  Serial.println("trip all");
   for (int idx = 0; idx < t_count; idx++) {
     trip(idx);
   }
@@ -97,18 +71,21 @@ void trip_all()
 
 void trip_t1()
 {
+  Serial.println("trip t1");
   trip(t1_idx);
 }
 
 
 void trip_t2()
 {
+  Serial.println("trip t2");
   trip(t2_idx);
 }
 
 
 void trip_t3()
 {
+  Serial.println("trip t3");
   trip(t3a_idx);
   trip(t3b_idx);
   trip(t3c_idx);
@@ -117,18 +94,21 @@ void trip_t3()
 
 void trip_t3a()
 {
+  Serial.println("trip t3a");
   trip(t3a_idx);
 }
 
 
 void trip_t3b()
 {
+  Serial.println("trip t3b");
   trip(t3b_idx);
 }
 
 
 void trip_t3c()
 {
+  Serial.println("trip t3c");
   trip(t3c_idx);
 }
 
@@ -146,9 +126,34 @@ void close_down()
 }
 
 
+const int trippers_count = 7;
+tripperPtr trippers[7] = {trip_all, trip_t1, trip_t2, trip_t3, trip_t3a, trip_t3b, trip_t3c};
+
+
+void setup()
+{
+  Serial.begin(57600);
+
+  for (int idx = 0; idx < t_count; idx++) {
+    pinMode(pin[idx], OUTPUT);
+  }
+
+  randomSeed(analogRead(0));
+}
+
+
 void loop()
 {
-  trip_all();
+  int tidx = random(0, trippers_count);
+  static int pause = 0;
+  static unsigned long last = 0;
+  unsigned long now = millis();
+
+  if (now > last + pause) {
+    (*trippers[tidx])();
+    last = now;
+    pause = random(1000, 5000);
+  }
   close_down();
 }
 
