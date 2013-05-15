@@ -45,6 +45,10 @@ unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last
 int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
 
 
+const int min_pause =  30000;  // 30 seconds
+const int max_pause = 150000;  // 2.5 minutes
+
+
 void all_off()
 {
   digitalWrite(pin[t1_idx], LOW);
@@ -209,7 +213,7 @@ void loop()
   if (now > last + pause) {
     (*trippers[tidx])();
     last = now;
-    pause = random(30000, 200000);
+    pause = random(min_pause, max_pause);
     // Serial.print("pause ");
     // Serial.println(pause);
   }
