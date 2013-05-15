@@ -47,8 +47,8 @@ int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time
 const int t3_min_spin = 1;
 const int t3_max_spin = 10;
 
-const int min_pause =  30000;  // 30 seconds
-const int max_pause = 150000;  // 2.5 minutes
+const unsigned long min_pause =  30000;  // 30 seconds
+const unsigned long max_pause = 150000;  // 2.5 minutes
 
 
 void all_off()
