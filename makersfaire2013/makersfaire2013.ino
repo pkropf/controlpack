@@ -37,8 +37,8 @@ const int t3c_idx = 4;
 
 
 const int pin[5]               = {     4,     5,     6,     7,     8 };  // digital i/o pins
-const int min_open[5]          = {  2000,  125,     62,    62,    62 };  // minumum time to remain open
-const int max_open[5]          = {  2000,  250,    250,   250,   250 };  // maximum time to remain open
+const int min_open[5]          = {  2000,   125,    62,    62,    62 };  // minumum time to remain open
+const int max_open[5]          = {  2000,   250,   250,   250,   250 };  // maximum time to remain open
 const unsigned long refresh[5] = { 60000, 60000, 10000, 10000, 10000 };  // time to refresh tank
 int state[5]                   = {     0,     0,     0,     0,     0 };  // current state
 unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last time opened
@@ -169,6 +169,32 @@ void trip_t3_spin()
 }
 
 
+void trip_bambam()
+{
+  unsigned long last = millis() - last_open[t1_idx];
+
+  if (last > refresh[t1_idx]) {
+    delay(refresh[t1_idx]);
+  }
+
+  last = millis() - last_open[t2_idx];
+
+  if (last > refresh[t2_idx]) {
+    delay(refresh[t2_idx]);
+  }
+
+  last = millis() - last_open[t3a_idx];
+
+  if (last > refresh[t3a_idx]) {
+    delay(refresh[t3a_idx]);
+  }
+
+  trip_t2_boomboom();
+  trip_t3_spin();
+  trip_t1();
+}
+
+
 void close_down()
 {
   for (int idx = 0; idx < t_count; idx++) {
@@ -182,12 +208,13 @@ void close_down()
 }
 
 
-const int trippers_count = 7;
-tripperPtr trippers[7] = {
+const int trippers_count = 8;
+tripperPtr trippers[trippers_count] = {
   trip_all,
   trip_t1,        trip_t1,
   trip_t2,        trip_t2_boomboom,
-  trip_t3,        trip_t3_spin
+  trip_t3,        trip_t3_spin,
+  trip_bambam
 };
 
 
