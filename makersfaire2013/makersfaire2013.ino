@@ -44,6 +44,8 @@ int state[5]                   = {     0,     0,     0,     0,     0 };  // curr
 unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last time opened
 int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
 
+const int t3_min_spin = 1;
+const int t3_max_spin = 10;
 
 const int min_pause =  30000;  // 30 seconds
 const int max_pause = 150000;  // 2.5 minutes
@@ -139,7 +141,7 @@ void trip_t3_spin()
 {
   // Serial.println("trip t3 spin");
   int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
-  int rounds = random(1, 5);
+  int rounds = random(t3_min_spin, t3_max_spin);
   int direction = random(0, 1);
   int i1 = t3a_idx, i2 = t3b_idx, i3 = t3c_idx;
 
