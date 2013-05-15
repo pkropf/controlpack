@@ -38,17 +38,17 @@ const int t3c_idx = 4;
 
 const int pin[5]               = {     4,     5,     6,     7,     8 };  // digital i/o pins
 const int min_open[5]          = {  2000,   125,    62,    62,    62 };  // minumum time to remain open
-const int max_open[5]          = {  2000,   250,   250,   250,   250 };  // maximum time to remain open
+const int max_open[5]          = {  2000,   250,   250,   200,   200 };  // maximum time to remain open
 const unsigned long refresh[5] = { 60000, 60000, 10000, 10000, 10000 };  // time to refresh tank
 int state[5]                   = {     0,     0,     0,     0,     0 };  // current state
-unsigned long last_open[5]     = {     0,     0,     0,     0,     0 };  // last time opened
-int remain_open[5]             = {     0,     0,     0,     0,     0 };  // time to remain open
+unsigned long last_open[5]     = { 60000, 60000, 10000, 10000, 10000 };  // last time opened, assume charged tanks
+unsigned long remain_open[5]   = {     0,     0,     0,     0,     0 };  // time to remain open
 
-const int t3_min_spin = 1;
+const int t3_min_spin =  1;
 const int t3_max_spin = 10;
 
 const unsigned long min_pause =  30000;  // 30 seconds
-const unsigned long max_pause = 150000;  // 2.5 minutes
+const unsigned long max_pause =  90000;  // 1.5 minutes
 
 
 void all_off()
@@ -112,7 +112,7 @@ void trip_t2_boomboom()
 
   all_off();
 
-  if (last > refresh[t2_idx]) {
+  if (last < refresh[t2_idx]) {
     delay(refresh[t2_idx]);
   }
 
@@ -140,7 +140,7 @@ void trip_t3()
 void trip_t3_spin()
 {
   // Serial.println("trip t3 spin");
-  int pause = random(min_open[t3a_idx], max_open[t3a_idx]);
+  unsigned long pause = random(min_open[t3a_idx], max_open[t3a_idx]);
   int rounds = random(t3_min_spin, t3_max_spin);
   int direction = random(0, 1);
   int i1 = t3a_idx, i2 = t3b_idx, i3 = t3c_idx;
