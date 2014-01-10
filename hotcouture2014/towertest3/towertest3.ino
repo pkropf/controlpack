@@ -20,27 +20,39 @@
 
 
 const int ledPin = 13;                 // pin to trip to show that we're doing something
-const int ppin = 8;
+const int pcount = 3;
 const int duration = 125;                    // how long between pin activations
+const int pins[pcount] = {
+  9, 10, 11
+};
 
+int cpin = 0;
 
 void setup() {
   Serial.begin(9600);
 
   pinMode(ledPin, OUTPUT);
-  pinMode(ppin,  OUTPUT);
-  digitalWrite(ppin, LOW);
+  for (int i = 0; i < pcount; i++) {
+    pinMode(i,  OUTPUT);
+    digitalWrite(i, LOW);
+  }
 }
 
 
 void loop()
 {
-  digitalWrite(ppin,  HIGH);
+  digitalWrite(pins[cpin],  HIGH);
   digitalWrite(ledPin, HIGH);
   delay(duration);
 
-  digitalWrite(ppin,  LOW);
+  digitalWrite(pins[cpin],  LOW);
   digitalWrite(ledPin, LOW);
   delay(duration);
+
+  cpin += 1;
+
+  if (cpin == pcount) {
+    cpin = 0;
+  }
 }
 

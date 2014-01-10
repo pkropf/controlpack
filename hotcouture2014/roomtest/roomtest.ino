@@ -20,27 +20,47 @@
 
 
 const int ledPin = 13;                 // pin to trip to show that we're doing something
-const int ppin = 8;
-const int duration = 125;                    // how long between pin activations
+const int poofer_count = 31;           // number of poofers
+const int duration = 1000;             // how long between pin activations
+
+int poofer_pins[poofer_count] = {      // output pins for the poofers
+  20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+  33, 36, 37, 38, 39, 40, 41, 42, 43,
+  44, 45, 46, 47, 48, 49, 50, 51, 52
+};
+
+int poofer_idx = 0;                    // current pin index
 
 
 void setup() {
   Serial.begin(9600);
 
+  //Serial.println("hello");
+  //Serial.println(poofer_count);
+
   pinMode(ledPin, OUTPUT);
-  pinMode(ppin,  OUTPUT);
-  digitalWrite(ppin, LOW);
+
+  for (int i = 0; i++; i < poofer_count) {
+    pinMode(poofer_pins[i], OUTPUT);
+  }
 }
 
 
-void loop()
-{
-  digitalWrite(ppin,  HIGH);
+void loop() {
+  //Serial.println(poofer_pins[poofer_idx]);
+  digitalWrite(poofer_pins[poofer_idx], HIGH);
   digitalWrite(ledPin, HIGH);
+
   delay(duration);
 
-  digitalWrite(ppin,  LOW);
+  digitalWrite(poofer_pins[poofer_idx], LOW);
   digitalWrite(ledPin, LOW);
   delay(duration);
+
+  poofer_idx += 1;
+
+  if (poofer_idx == poofer_count) {
+    poofer_idx = 0;
+  }
 }
 

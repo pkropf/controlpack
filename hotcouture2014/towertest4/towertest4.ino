@@ -21,19 +21,12 @@
 
 const int ledPin = 13;                 // pin to trip to show that we're doing something
 const int pcount = 9;
-const int don  = 125;     // how long the solenoid is on
-const int doff = 125;     // how long till the next solenoid
-const int sequence_pin = 1;             // pin to read when checking if the poofers are active
-const int random_pin   = 0;             // pin to read when checking if the poofers are active
+const int duration = 125;                    // how long between pin activations
 
 int cpin = 0;
-int dran = 0;
 
 void setup() {
   Serial.begin(9600);
-
-  pinMode(sequence_pin, INPUT_PULLUP);
-  pinMode(random_pin, INPUT_PULLUP);
 
   pinMode(ledPin, OUTPUT);
   pinMode(2, OUTPUT);
@@ -50,7 +43,7 @@ void setup() {
 }
 
 
-void next()
+void loop()
 {
   switch (cpin) {
     case 0:
@@ -85,7 +78,7 @@ void next()
       
   }
   digitalWrite(ledPin, HIGH);
-  delay(don);
+  delay(duration);
 
   switch (cpin) {
     case 0:
@@ -120,26 +113,12 @@ void next()
       
   }
   digitalWrite(ledPin, LOW);
-  delay(doff);
+  delay(duration);
 
   cpin += 1;
 
   if (cpin == pcount) {
     cpin = 0;
-  }
-}
-
-
-void loop() {
-  if (digitalRead(sequence_pin) == LOW) {       // we've got a button press
-    dran = random(don / 2, doff);
-    next();
-  }
-
-  if (digitalRead(random_pin) == LOW) {       // we've got a button press
-    dran = random(don / 2, doff);
-    cpin = random(0, pcount);
-    next();
   }
 }
 
