@@ -61,6 +61,7 @@ void trigger(int pin, int duration) {
   digitalWrite(pin, HIGH);
   delay(duration);
   digitalWrite(pin, LOW);
+  delay(duration);
 }
 
 
@@ -72,7 +73,6 @@ void loop() {
       int midx = random(0, sizeof(msolenoids) / sizeof(msolenoids[0]) - 1);
       int wait = random(mopen_min, mopen_max);
       trigger(msolenoids[midx], wait);
-      delay(wait);
     }
   }
 
