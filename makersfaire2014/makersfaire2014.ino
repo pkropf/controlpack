@@ -69,9 +69,12 @@ void loop() {
     delay(fibonacci[fidx] * 1000);
 
     for (int cidx = 0; cidx < fibonacci[fidx]; cidx++) {
-      trigger(random(0, sizeof(msolenoids) / sizeof(msolenoids[0])), random(mopen_min, mopen_max));
+      int wait = random(mopen_min, mopen_max);
+      trigger(random(0, sizeof(msolenoids) / sizeof(msolenoids[0])), wait);
+      delay(wait);
     }
   }
 
   trigger(bsolenoid, bduration);
 }
+
