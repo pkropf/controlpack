@@ -29,18 +29,23 @@
 // sequence running in reverse from 610.
 
 
-const int fibonacci[] = {610, 377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
+//const int fibonacci[] = {610, 377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
+const int fibonacci[] = {377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
 
 const int msolenoid_count = 27;    // mini solenoid count
 int msolenoids[] = {               // mini solenoid pins
-  22, 23, 24, 25, 26, 27, 28,
-  29, 30, 31, 32, 33, 34, 35,
-  36, 37, 38, 39, 40, 41, 42
+  38, 39, 40, 41, 42, 43, 44, 45,
+
+  22, 23, 24, 25, 26, 27,
+  
+  28, 29, 30, 31, 32, 33, 34, 35,
+ 
+  49, 50, 51, 52, 53
 };
 const int mopen_min = 62;          // minimun duration an msolenoid should remain open in milliseconds
-const int mopen_max = 200;         // maximum duration an msolenoid should remain open in milliseconds
+const int mopen_max = 125;         // maximum duration an msolenoid should remain open in milliseconds
 
-const int bsolenoid = 4;           // big solenoid pin
+const int bsolenoid = 48;          // big solenoid pin
 const int bduration = 2000;        // duration big solenoid should remain open in milliseconds
 
 
@@ -58,6 +63,10 @@ void setup() {
 
 
 void trigger(int pin, int duration) {
+  // Serial.print("trigger ");
+  // Serial.print(pin);
+  // Serial.print(" for ");
+  // Serial.println(duration);
   digitalWrite(pin, HIGH);
   delay(duration);
   digitalWrite(pin, LOW);
@@ -67,11 +76,13 @@ void trigger(int pin, int duration) {
 
 void loop() {
   for (int fidx = 0; fidx < sizeof(fibonacci) / sizeof(fibonacci[0]); fidx++) {
+    // Serial.print("pausing ");
+    // Serial.println(fibonacci[fidx]);
     delay(fibonacci[fidx] * 1000);
 
+    int wait = random(mopen_min, mopen_max);
     for (int cidx = 0; cidx < fibonacci[fidx]; cidx++) {
       int midx = random(0, sizeof(msolenoids) / sizeof(msolenoids[0]) - 1);
-      int wait = random(mopen_min, mopen_max);
       trigger(msolenoids[midx], wait);
     }
   }
