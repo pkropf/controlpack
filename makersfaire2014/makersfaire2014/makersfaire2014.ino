@@ -30,7 +30,7 @@
 
 
 //const int fibonacci[] = {610, 377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
-const int fibonacci[] = {377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
+const unsigned long fibonacci[] = {377, 233, 144, 89, 55, 34, 21, 13, 8, 5, 3, 2, 1, 1};
 
 const int msolenoid_count = 27;    // mini solenoid count
 int msolenoids[] = {               // mini solenoid pins
@@ -54,9 +54,11 @@ void setup() {
 
   for (int idx = 0; idx < msolenoid_count; idx++) {
     pinMode(msolenoids[idx], OUTPUT);
+    trigger(msolenoids[idx], mopen_max);
   }
 
   pinMode(bsolenoid, OUTPUT);
+  trigger(bsolenoid, bduration);
 
   randomSeed(analogRead(0));
 }
@@ -78,9 +80,10 @@ void loop() {
   for (int fidx = 0; fidx < sizeof(fibonacci) / sizeof(fibonacci[0]); fidx++) {
     // Serial.print("pausing ");
     // Serial.println(fibonacci[fidx]);
-    delay(fibonacci[fidx] * 1000);
+    unsigned long wait = fibonacci[fidx] * 1000;
+    delay(wait);
 
-    int wait = random(mopen_min, mopen_max);
+    wait = random(mopen_min, mopen_max);
     for (int cidx = 0; cidx < fibonacci[fidx]; cidx++) {
       int midx = random(0, sizeof(msolenoids) / sizeof(msolenoids[0]) - 1);
       trigger(msolenoids[midx], wait);
